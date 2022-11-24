@@ -35,6 +35,14 @@ module.exports = class Product {
     });
   }
 
+  static update(products) {
+    fs.writeFile(p, JSON.stringify(products), err => {
+      if (err){
+        console.log(err);
+      }
+    });
+  }
+
   static fetchAll(cb) {
     getProductsFromFile(cb);
   }

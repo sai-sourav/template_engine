@@ -1,12 +1,10 @@
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
-  res.render('admin/add-product', {
+  res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
-    formsCSS: true,
-    productCSS: true,
-    activeAddProduct: true
+    editing: false
   });
 };
 
@@ -19,6 +17,48 @@ exports.postAddProduct = (req, res, next) => {
   product.save();
   res.redirect('/');
 };
+
+exports.getEditProduct = (req, res, next) => {
+  const editmode = req.query.edit;
+  if (!editmode) {
+    return res.redirect('/');
+  }
+  const prodid = req.params.productid;
+  Product.findbyid(prodid, product => {
+    if (!product) {
+      return res.redirect('/');
+    }
+    res.render('admin/edit-product', {
+      pageTitle: 'Edit Product',
+      path: '/admin/edit-product',
+      editing: editmode,
+      product: product
+    });
+  })
+};
+
+exports.posteditproduct = (req, res, next) => {
+     let prodid = req.body.id;
+     Product.fetchAll(products => {
+      const existingproductindex = products.findIndex(prod => prod.id === prodid);
+      products[existingproductindex].title = req.body.title;
+      products[existingproductindex].imageUrl = req.body.imageUrl;
+      products[existingproductindex].price = req.body.price;
+      products[existingproductindex].description = req.body.description;
+      Product.update(products);
+     })
+     res.redirect('/admin/products');
+}
+
+exports.deleteproduct = (req,res,next) => {
+  const prodid = req.params.productid;
+  Product.fetchAll(products => {
+    const existingproductindex = products.findIndex(prod => prod.id === prodid);
+    products.splice(existingproductindex, 1);
+    Product.update(products);
+   })
+  res.redirect('/admin/products');
+}
 
 exports.getProducts = (req, res, next) => {
   Product.fetchAll(products => {
