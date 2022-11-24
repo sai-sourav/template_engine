@@ -43,6 +43,14 @@ module.exports = class Product {
     });
   }
 
+  static deletebyid(id) {
+    Product.fetchAll(products => {
+      const existingproductindex = products.findIndex(prod => prod.id === id);
+      products.splice(existingproductindex, 1);
+      Product.update(products);
+     })
+  }
+
   static fetchAll(cb) {
     getProductsFromFile(cb);
   }

@@ -52,11 +52,7 @@ exports.posteditproduct = (req, res, next) => {
 
 exports.deleteproduct = (req,res,next) => {
   const prodid = req.params.productid;
-  Product.fetchAll(products => {
-    const existingproductindex = products.findIndex(prod => prod.id === prodid);
-    products.splice(existingproductindex, 1);
-    Product.update(products);
-   })
+  Product.deletebyid(prodid);
   res.redirect('/admin/products');
 }
 
