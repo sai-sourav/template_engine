@@ -13,8 +13,16 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(title, imageUrl, description, price);
-  product.save().catch(err => {console.log("error saving product:",err)});
+  // const product = new Product(title, imageUrl, description, price);
+  // product.save().catch(err => {console.log("error saving product:",err)});
+  Product.create({
+    title: title,
+    price: price,
+    imageUrl: imageUrl,
+    description: description
+  }).catch(err => {
+    console.log("error at saving:",err);
+  })
   res.redirect('/');
 };
 
@@ -24,7 +32,7 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect('/');
   }
   const prodid = req.params.productid;
-  Product.findbyid(prodid).then(([product,metadata]) => {
+  Product.findByPk(prodid).then((product) => {
     // if (!product[0]) {
     //   return res.redirect('/');
     // }
@@ -32,7 +40,7 @@ exports.getEditProduct = (req, res, next) => {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing: editmode,
-      product: product[0]
+      product: product
     });
   })
 };
@@ -47,22 +55,56 @@ exports.posteditproduct = (req, res, next) => {
     //   products[existingproductindex].description = req.body.description;
     //   Product.update(products);
     //  })
-    Product.update(req.body).catch(err => {console.log("update failed:",err)});
+    const prodId = req.body.id;
+    const updatedTitle = req.body.title;
+    const updatedPrice = req.body.price;
+    const updatedImageUrl = req.body.imageUrl;
+    const updatedDesc = req.body.description;
+    Product.findByPk(prodId)
+    .then(product => {
+    //   console.log(product);
+    // })
+      product.title = updatedTitle,
+      product.price = updatedPrice,
+      product.imageUrl = updatedImageUrl,
+      product.description = updatedDesc
+      return product.save();
+    }).then(result => {
+      console.log("updated successfully");
+    }).catch(err => console.log("error in saving:",err));
+    // Product.update(req.body).catch(err => {console.log("update failed:",err)});
     res.redirect('/admin/products');
 }
 
 exports.deleteproduct = (req,res,next) => {
   const prodid = req.params.productid;
-  Product.deletebyid(prodid).catch(err => {console.log("error at deletion:",err)});
-  res.redirect('/admin/products');
+  // Product.deletebyid(prodid).catch(err => {console.log("error at deletion:",err)});
+  Product.findByPk(prodid)
+    .then(product => {
+      return product.destroy();
+    }).then(result => {
+      console.log("deleted successfully");
+      res.redirect('/admin/products');
+    }).catch(err => console.log("error in deleting:",err));
 }
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll().then(products => {
+  Product.findAll()
+  .then(products => {
     res.render('admin/products', {
-      prods: products[0],
+      prods: products,
       pageTitle: 'Admin Products',
       path: '/admin/products'
     });
-  });
+  })
+  .catch(err => {
+    console.log("error at get all data:",err);
+  })
+  // Product.fetchAll().then(products => {
+  //   res.render('admin/products', {
+  //     prods: products[0],
+  //     pageTitle: 'Admin Products',
+  //     path: '/admin/products'
+  //   });
+  // });
 };

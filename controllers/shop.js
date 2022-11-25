@@ -2,35 +2,58 @@ const Cart = require('../models/cart');
 const Product = require('../models/product');
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll().then(products => {
+  Product.findAll()
+  .then(products => {
     res.render('shop/product-list', {
-      prods: products[0],
+      prods: products,
       pageTitle: 'All Products',
       path: '/products'
     });
-  });
+  })
+  .catch(err => {
+    console.log("error at get all data:",err);
+  })
+  // Product.fetchAll().then(products => {
+  //   res.render('shop/product-list', {
+  //     prods: products[0],
+  //     pageTitle: 'All Products',
+  //     path: '/products'
+  //   });
+  // });
 };
 
 exports.getproduct = (req, res, next) => {
   const prodid = req.params.productid;
-  Product.findbyid(prodid, product =>{
+  Product.findByPk(prodid).then(product =>{
+    // console.log(product.dataValues);
     res.render('shop/product-detail', 
     {
       product:product,
-      pageTitle: product.title,
+      pageTitle: "title",
       path : '/products'
     })
   });
 }
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll().then(products => {
+  Product.findAll()
+  .then(products => {
     res.render('shop/index', {
-      prods: products[0],
+      prods: products,
       pageTitle: 'Shop',
       path: '/'
     });
-  });
+  })
+  .catch(err => {
+    console.log("error at get all data:",err);
+  })
+  // Product.fetchAll().then(products => {
+  //   res.render('shop/index', {
+  //     prods: products[0],
+  //     pageTitle: 'Shop',
+  //     path: '/'
+  //   });
+  // });
 };
 
 exports.getCart = (req, res, next) => {
