@@ -57,18 +57,51 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-  res.render('shop/cart', {
-    path: '/cart',
-    pageTitle: 'Your Cart'
-  });
+  
+  req.user.getCart()
+  .then(cart => {
+    console.log(cart);
+    return cart.getProducts().then(products => {
+      res.render('shop/cart', {
+        path: '/cart',
+        pageTitle: 'Your Cart',
+        products: products
+      });
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  })
 };
 
 exports.postCart = (req, res, next) => {
   const prodid = req.body.productid;
-  Product.findByPk(prodid, (product) => {
-        Cart.addproduct(prodid, product.price);
-  });
-  res.redirect('/cart')
+  let fetchedcart;
+  let newquantity = 1;
+  req.user.getCart()
+  .then(cart => {
+    fetchedcart = cart;
+    return cart.getProducts({ where: { id : prodid } });
+  })
+  .then(products => {
+    let product;
+    if (products.length > 0){
+      product = products[0]
+    }
+    if (product) {
+      const oldquantity = product.cartItem.quantity;
+      newquantity = oldquantity + 1
+      return product;
+    }
+    return Product.findByPk(prodid);
+  })
+  .then((product) => {
+    return fetchedcart.addProduct(product, { through: { quantity : newquantity}});
+  })
+  .then(() => {
+    res.redirect('/cart')
+  })
+  .catch(err => console.log(err));
 }
 
 exports.getOrders = (req, res, next) => {
@@ -84,3 +117,23 @@ exports.getCheckout = (req, res, next) => {
     pageTitle: 'Checkout'
   });
 };
+
+
+exports.deletecartitem = (req, res, next) => {
+  const prodid = req.body.productId;
+  req.user.getCart()
+  .then(cart => {
+    return cart.getProducts({ where: { id : prodid } });
+  })
+  .then(products => {
+    let product;
+    if (products.length > 0){
+      product = products[0];
+      return product.cartItem.destroy();
+    }
+  })
+  .then(result => {
+    res.redirect('/cart');
+  })
+  .catch(err => console.log(err));
+}
